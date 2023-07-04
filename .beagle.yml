@@ -193,7 +193,7 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
     settings:
       dockerfile: .beagle/dockerfile.backend
       base: registry.cn-qingdao.aliyuncs.com/wod/alpine:3-amd64
-      repo: wod/awecloud-hubble-ui-backend
+      repo: cloud/awecloud-hubble-ui-backend
       version: v6.1.0
       channel: amd64
       args: 'TARGETOS=linux,TARGETARCH=amd64'
@@ -211,7 +211,7 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
     settings:
       dockerfile: .beagle/dockerfile.backend
       base: registry.cn-qingdao.aliyuncs.com/wod/alpine:3-arm64
-      repo: wod/awecloud-hubble-ui-backend
+      repo: cloud/awecloud-hubble-ui-backend
       version: v6.1.0
       channel: arm64
       args: 'TARGETOS=linux,TARGETARCH=arm64'
@@ -229,7 +229,7 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
     settings:
       dockerfile: .beagle/dockerfile.backend
       base: registry.cn-qingdao.aliyuncs.com/wod/alpine:3-ppc64le
-      repo: wod/awecloud-hubble-ui-backend
+      repo: cloud/awecloud-hubble-ui-backend
       version: v6.1.0
       channel: ppc64le
       args: 'TARGETOS=linux,TARGETARCH=ppc64le'
@@ -247,7 +247,7 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
     settings:
       dockerfile: .beagle/dockerfile.backend
       base: registry.cn-qingdao.aliyuncs.com/wod/alpine:3-mips64le
-      repo: wod/awecloud-hubble-ui-backend
+      repo: cloud/awecloud-hubble-ui-backend
       version: v6.1.0
       channel: mips64le
       args: 'TARGETOS=linux,TARGETARCH=mips64le'
