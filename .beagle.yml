@@ -5,11 +5,14 @@ trigger:
   branch:
     - dev
 
+workspace:
+  path: /go/src/github.com/cilium/hubble-ui
+
 clone:
   disable: true
 
 volumes:
-  - name: docker-sock
+  - name: docker
     host:
       path: /var/run/docker.sock
 
@@ -51,7 +54,7 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
     # 将宿主机的 docker和配置挂载到运行的 docker 容器中，那么在容器中运行 docker 命令时，等同于在宿主机中运行该docker命令 
     volumes:
-      - name: docker-sock
+      - name: docker
         path: /var/run/docker.sock # 将下载依赖的目录挂载出来，防止重复下载
     settings: # 当前设置
       base: registry.cn-qingdao.aliyuncs.com/wod/ui-base:v6.0-amd64 # 基础镜像
@@ -69,7 +72,7 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
   - name: docker-arm64
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
     volumes:
-      - name: docker-sock
+      - name: docker
         path: /var/run/docker.sock
     settings:
       base: registry.cn-qingdao.aliyuncs.com/wod/ui-base:v6.0-arm64
@@ -87,7 +90,7 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
   - name: docker-ppc64le
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
     volumes:
-      - name: docker-sock
+      - name: docker
         path: /var/run/docker.sock
     settings:
       base: registry.cn-qingdao.aliyuncs.com/wod/ui-base:v6.0-ppc64le
@@ -105,7 +108,7 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
   - name: docker-mips64le
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
     volumes:
-      - name: docker-sock
+      - name: docker
         path: /var/run/docker.sock
     settings:
       base: registry.cn-qingdao.aliyuncs.com/wod/ui-base:v6.0-mips64le
