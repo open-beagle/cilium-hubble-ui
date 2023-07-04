@@ -32,23 +32,34 @@ http://localhost:8080
 http://localhost:9090
 ```
 
-## build
+## build ui
 
 ```bash
 # patch
 docker run -it --rm \
--v $PWD/:/go/src/gitlab.wodcloud.com/open-beagle/cilium-hubble-ui \
--w /go/src/gitlab.wodcloud.com/open-beagle/cilium-hubble-ui \
+-v $PWD/:/go/src/github.com/cilium/hubble-ui \
+-w /go/src/github.com/cilium/hubble-ui \
 registry.cn-qingdao.aliyuncs.com/wod/git:2 \
 git apply .beagle/v0.11.0-fix-path.patch && \
 git apply .beagle/v0.11.0-install-grpc.patch
 
 # build
 docker run --rm -it \
--v $PWD/:/go/src/gitlab.wodcloud.com/open-beagle/cilium-hubble-ui \
--w /go/src/gitlab.wodcloud.com/open-beagle/cilium-hubble-ui \
+-v $PWD/:/go/src/github.com/cilium/hubble-ui \
+-w /go/src/github.com/cilium/hubble-ui \
 registry.cn-qingdao.aliyuncs.com/wod/node:18-alpine \
 bash -c 'yarn && yarn build'
+```
+
+## build backend
+
+```bash
+# golang build
+docker run -it --rm \
+-v $PWD/:/go/src/github.com/cilium/hubble-ui \
+-w /go/src/github.com/cilium/hubble-ui \
+registry.cn-qingdao.aliyuncs.com/wod/golang:1.20-loongnix \
+bash .beagle/build.sh
 ```
 
 ## cache

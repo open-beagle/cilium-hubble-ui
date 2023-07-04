@@ -37,8 +37,9 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
   - name: patch
     image: registry.cn-qingdao.aliyuncs.com/wod/git:2
     commands:
+      - git apply .beagle/v0.11.0-install-grpc.patch    
       - git apply .beagle/v0.11.0-fix-path.patch
-      - git apply .beagle/v0.11.0-install-grpc.patch
+      - git apply .beagle/v0.11.0-backend-fix-path.patch
 
   - name: build # 项目打包
     image: registry.cn-qingdao.aliyuncs.com/wod/node:18-alpine
@@ -142,10 +143,132 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
   #     KUBERNETES_SERVER:
   #       from_secret: KUBERNETES_SERVER
   #     KUBERNETES_TOKEN:
-  #       from_secret: KUBERNETES_TOKEN        
+  #       from_secret: KUBERNETES_TOKEN
+
+  - name: golang
+    image: registry.cn-qingdao.aliyuncs.com/wod/golang:1.20-loongnix
+    commands:
+      - bash ./.beagle/build.sh
+
+  - name: gops-amd64
+    image: registry.cn-qingdao.aliyuncs.com/wod/gops:v0.3.27-amd64
+    environment:
+      TARGET_ARCH: amd64
+    commands:
+      - mkdir -p build/linux-$TARGET_ARCH
+      - cp /usr/local/bin/gops build/linux-$TARGET_ARCH/gops
+
+  - name: gops-arm64
+    image: registry.cn-qingdao.aliyuncs.com/wod/gops:v0.3.27-arm64
+    environment:
+      TARGET_ARCH: arm64
+    commands:
+      - mkdir -p build/linux-$TARGET_ARCH
+      - cp /usr/local/bin/gops build/linux-$TARGET_ARCH/gops
+
+  - name: gops-ppc64le
+    image: registry.cn-qingdao.aliyuncs.com/wod/gops:v0.3.27-ppc64le
+    environment:
+      TARGET_ARCH: ppc64le
+    commands:
+      - mkdir -p build/linux-$TARGET_ARCH
+      - cp /usr/local/bin/gops build/linux-$TARGET_ARCH/gops
+
+  - name: gops-mips64le
+    image: registry.cn-qingdao.aliyuncs.com/wod/gops:v0.3.27-mips64le
+    environment:
+      TARGET_ARCH: mips64le
+    commands:
+      - mkdir -p build/linux-$TARGET_ARCH
+      - cp /usr/local/bin/gops build/linux-$TARGET_ARCH/gops                 
+
+  - name: backend-docker-amd64
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    settings:
+      dockerfile: .beagle/dockerfile.backend
+      base: registry.cn-qingdao.aliyuncs.com/wod/alpine:3-amd64
+      repo: wod/awecloud-hubble-ui-backend
+      version: v6.1.0
+      channel: amd64
+      args: 'TARGETOS=linux,TARGETARCH=amd64'
+      registry: hub.wodcloud.com
+      registry_user:
+        from_secret: REGISTRY_USER
+      registry_password:
+        from_secret: REGISTRY_PASSWORD
+
+  - name: backend-docker-arm64
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    settings:
+      dockerfile: .beagle/dockerfile.backend
+      base: registry.cn-qingdao.aliyuncs.com/wod/alpine:3-arm64
+      repo: wod/awecloud-hubble-ui-backend
+      version: v6.1.0
+      channel: arm64
+      args: 'TARGETOS=linux,TARGETARCH=arm64'
+      registry: hub.wodcloud.com
+      registry_user:
+        from_secret: REGISTRY_USER
+      registry_password:
+        from_secret: REGISTRY_PASSWORD
+
+  - name: backend-docker-ppc64le
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    settings:
+      dockerfile: .beagle/dockerfile.backend
+      base: registry.cn-qingdao.aliyuncs.com/wod/alpine:3-ppc64le
+      repo: wod/awecloud-hubble-ui-backend
+      version: v6.1.0
+      channel: ppc64le
+      args: 'TARGETOS=linux,TARGETARCH=ppc64le'
+      registry: hub.wodcloud.com
+      registry_user:
+        from_secret: REGISTRY_USER
+      registry_password:
+        from_secret: REGISTRY_PASSWORD
+
+  - name: backend-docker-mips64le
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    settings:
+      dockerfile: .beagle/dockerfile.backend
+      base: registry.cn-qingdao.aliyuncs.com/wod/alpine:3-mips64le
+      repo: wod/awecloud-hubble-ui-backend
+      version: v6.1.0
+      channel: mips64le
+      args: 'TARGETOS=linux,TARGETARCH=mips64le'
+      registry: hub.wodcloud.com
+      registry_user:
+        from_secret: REGISTRY_USER
+      registry_password:
+        from_secret: REGISTRY_PASSWORD
+
+  - name: backend-docker-arch
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-manifest:1.0
+    settings:
+      platforms: linux/amd64,linux/arm64,linux/ppc64le,linux/mips64le
+      template: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1.0-ARCH
+      target: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1.0
+      insecure: true
+      username:
+        from_secret: REGISTRY_USER
+      password:
+        from_secret: REGISTRY_PASSWORD
+
 ---
 kind: pipeline
-name: main
+name: main-ui
 
 clone:
   disable: true
@@ -158,54 +281,50 @@ steps:
   - name: harbor-amd64
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
     pull: always
-    environment:
-      REGISTRY_USER:
-        from_secret: REGISTRY_USER
-      REGISTRY_PASSWORD:
-        from_secret: REGISTRY_PASSWORD
     settings:
       source: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1.0-amd64
       target: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1-amd64
       registry: hub.wodcloud.com
+      registry_user:
+        from_secret: REGISTRY_USER
+      registry_password:
+        from_secret: REGISTRY_PASSWORD 
 
   - name: harbor-arm64
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
     pull: always
-    environment:
-      REGISTRY_USER:
-        from_secret: REGISTRY_USER
-      REGISTRY_PASSWORD:
-        from_secret: REGISTRY_PASSWORD
     settings:
       source: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1.0-arm64
       target: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1-arm64
       registry: hub.wodcloud.com
+      registry_user:
+        from_secret: REGISTRY_USER
+      registry_password:
+        from_secret: REGISTRY_PASSWORD 
 
   - name: harbor-ppc64le
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
     pull: always
-    environment: 
-      REGISTRY_USER:
-        from_secret: REGISTRY_USER
-      REGISTRY_PASSWORD:
-        from_secret: REGISTRY_PASSWORD
     settings:
       source: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1.0-ppc64le
       target: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1-ppc64le
       registry: hub.wodcloud.com
+      registry_user:
+        from_secret: REGISTRY_USER
+      registry_password:
+        from_secret: REGISTRY_PASSWORD 
 
   - name: harbor-mips64le
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
     pull: always
-    environment:
-      REGISTRY_USER:
-        from_secret: REGISTRY_USER
-      REGISTRY_PASSWORD:
-        from_secret: REGISTRY_PASSWORD
     settings:
       source: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1.0-mips64le
       target: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1-mips64le
       registry: hub.wodcloud.com
+      registry_user:
+        from_secret: REGISTRY_USER
+      registry_password:
+        from_secret: REGISTRY_PASSWORD 
 
   - name: harbor-arch
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-manifest:1.0
@@ -213,6 +332,78 @@ steps:
       platforms:  linux/amd64,linux/arm64,linux/ppc64le,linux/mips64le
       template: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1-ARCH
       target: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1
+      insecure: true
+      username:
+        from_secret: REGISTRY_USER
+      password:
+        from_secret: REGISTRY_PASSWORD
+
+---
+kind: pipeline
+name: main-ui-backend
+
+clone:
+  disable: true
+
+trigger:
+  branch:
+    - main
+
+steps:
+  - name: harbor-amd64
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
+    pull: always
+    settings:
+      source: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1.0-amd64
+      target: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1-amd64
+      registry: hub.wodcloud.com
+      registry_user:
+        from_secret: REGISTRY_USER
+      registry_password:
+        from_secret: REGISTRY_PASSWORD 
+
+  - name: harbor-arm64
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
+    pull: always
+    settings:
+      source: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1.0-arm64
+      target: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1-arm64
+      registry: hub.wodcloud.com
+      registry_user:
+        from_secret: REGISTRY_USER
+      registry_password:
+        from_secret: REGISTRY_PASSWORD 
+
+  - name: harbor-ppc64le
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
+    pull: always
+    settings:
+      source: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1.0-ppc64le
+      target: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1-ppc64le
+      registry: hub.wodcloud.com
+      registry_user:
+        from_secret: REGISTRY_USER
+      registry_password:
+        from_secret: REGISTRY_PASSWORD 
+
+  - name: harbor-mips64le
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
+    pull: always
+    settings:
+      source: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1.0-mips64le
+      target: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1-mips64le
+      registry: hub.wodcloud.com
+      registry_user:
+        from_secret: REGISTRY_USER
+      registry_password:
+        from_secret: REGISTRY_PASSWORD      
+
+  - name: harbor-arch
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-manifest:1.0
+    settings:
+      platforms:  linux/amd64,linux/arm64,linux/ppc64le,linux/mips64le
+      template: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1-ARCH
+      target: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1
       insecure: true
       username:
         from_secret: REGISTRY_USER

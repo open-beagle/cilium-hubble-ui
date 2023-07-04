@@ -1,0 +1,19 @@
+ARG BASE
+
+FROM $BASE
+
+ARG AUTHOR
+ARG VERSION
+
+LABEL maintainer=$AUTHOR version=$VERSION
+
+ARG TARGETOS
+ARG TARGETARCH
+
+COPY ./build/$TARGETOS-$TARGETARCH/gops /usr/bin/gops
+COPY ./build/$TARGETOS-$TARGETARCH/backend /usr/bin/backend
+
+RUN mkdir -p /home/gops && chown 1001:1001 /home/gops
+
+ENV GOPS_CONFIG_DIR=/home/gops
+CMD ["/usr/bin/backend"]
