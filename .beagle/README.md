@@ -62,7 +62,7 @@ docker run --rm \
   -e PLUGIN_SECRET_KEY=$PLUGIN_SECRET_KEY \
   -e DRONE_REPO_OWNER="open-beagle" \
   -e DRONE_REPO_NAME="cilium-hubble-ui" \
-  -e PLUGIN_MOUNT="./node_modules" \
+  -e PLUGIN_MOUNT="./.git,./node_modules" \
   -v $(pwd):$(pwd) \
   -w $(pwd) \
   registry.cn-qingdao.aliyuncs.com/wod/devops-s3-cache:1.0
