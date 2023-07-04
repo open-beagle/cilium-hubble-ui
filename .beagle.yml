@@ -416,6 +416,13 @@ steps:
 ##--------------对于需要保密的信息隐藏，减少账户信息的泄密⬇-----------------##
 ---
 kind: secret
+name: SOCKS5_PROXY
+get:
+  name: SOCKS5_PROXY
+  path: devops-secrets
+
+---
+kind: secret
 name: REGISTRY_USER
 get:
   name: REGISTRY_USER
