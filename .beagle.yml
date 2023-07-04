@@ -158,32 +158,32 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
     environment:
       TARGET_ARCH: amd64
     commands:
-      - mkdir -p build/linux-$TARGET_ARCH
-      - cp /usr/local/bin/gops build/linux-$TARGET_ARCH/gops
+      - mkdir -p .tmp/linux-$TARGET_ARCH
+      - cp /usr/local/bin/gops .tmp/linux-$TARGET_ARCH/gops
 
   - name: gops-arm64
     image: registry.cn-qingdao.aliyuncs.com/wod/gops:v0.3.27-arm64
     environment:
       TARGET_ARCH: arm64
     commands:
-      - mkdir -p build/linux-$TARGET_ARCH
-      - cp /usr/local/bin/gops build/linux-$TARGET_ARCH/gops
+      - mkdir -p .tmp/linux-$TARGET_ARCH
+      - cp /usr/local/bin/gops .tmp/linux-$TARGET_ARCH/gops
 
   - name: gops-ppc64le
     image: registry.cn-qingdao.aliyuncs.com/wod/gops:v0.3.27-ppc64le
     environment:
       TARGET_ARCH: ppc64le
     commands:
-      - mkdir -p build/linux-$TARGET_ARCH
-      - cp /usr/local/bin/gops build/linux-$TARGET_ARCH/gops
+      - mkdir -p .tmp/linux-$TARGET_ARCH
+      - cp /usr/local/bin/gops .tmp/linux-$TARGET_ARCH/gops
 
   - name: gops-mips64le
     image: registry.cn-qingdao.aliyuncs.com/wod/gops:v0.3.27-mips64le
     environment:
       TARGET_ARCH: mips64le
     commands:
-      - mkdir -p build/linux-$TARGET_ARCH
-      - cp /usr/local/bin/gops build/linux-$TARGET_ARCH/gops                 
+      - mkdir -p .tmp/linux-$TARGET_ARCH
+      - cp /usr/local/bin/gops .tmp/linux-$TARGET_ARCH/gops                 
 
   - name: backend-docker-amd64
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
