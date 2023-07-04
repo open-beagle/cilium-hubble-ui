@@ -1,0 +1,263 @@
+kind: pipeline
+name: dev
+
+trigger:
+  branch:
+    - dev
+
+clone:
+  disable: true
+
+volumes:
+  - name: docker-sock
+    host:
+      path: /var/run/docker.sock
+
+##-------------------------------流水线⬇-------------------------------##
+steps: # 定义流水线执行步骤，这些步骤将顺序执行
+  - name: s3-cache
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-s3-cache:1.0
+    settings:
+      restore: true
+      mount:
+        - ./.git
+        - ./node_modules
+      endpoint: https://cache.wodcloud.com
+      access_key:
+        from_secret: ACCESS_KEY_MINIO
+      secret_key:
+        from_secret: SECRET_KEY_MINIO
+
+  - name: fetch
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-git:1.0
+    settings:
+      proxy:
+        from_secret: SOCKS5_PROXY
+
+  - name: patch
+    image: registry.cn-qingdao.aliyuncs.com/wod/git:2
+    commands:
+      - git apply .beagle/v0.11.0-fix-path.patch
+      - git apply .beagle/v0.11.0-install-grpc.patch
+
+  - name: build # 项目打包
+    image: registry.cn-qingdao.aliyuncs.com/wod/node:18-alpine
+    commands:
+      - yarn
+      - yarn build
+
+  - name: docker-amd64
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
+    # 将宿主机的 docker和配置挂载到运行的 docker 容器中，那么在容器中运行 docker 命令时，等同于在宿主机中运行该docker命令 
+    volumes:
+      - name: docker-sock
+        path: /var/run/docker.sock # 将下载依赖的目录挂载出来，防止重复下载
+    settings: # 当前设置
+      base: registry.cn-qingdao.aliyuncs.com/wod/ui-base:v6.0-amd64 # 基础镜像
+      dockerfile: .beagle/dockerfile
+      repo: cloud/awecloud-hubble-ui # 生成镜像的 分组/名称
+      version: "v6.1.0" # 版本号
+      channel: amd64 # 后缀
+      args: "TARGETOS=linux,TARGETARCH=amd64" # 不同架构的构建参数
+      registry: hub.wodcloud.com # 私有仓库地址
+      registry_user: # 用户
+        from_secret: REGISTRY_USER
+      registry_password: # 密码
+        from_secret: REGISTRY_PASSWORD
+ 
+  - name: docker-arm64
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
+    volumes:
+      - name: docker-sock
+        path: /var/run/docker.sock
+    settings:
+      base: registry.cn-qingdao.aliyuncs.com/wod/ui-base:v6.0-arm64
+      dockerfile: .beagle/dockerfile
+      repo: cloud/awecloud-hubble-ui
+      version: "v6.1.0"
+      channel: arm64
+      args: "TARGETOS=linux,TARGETARCH=arm64"
+      registry: hub.wodcloud.com
+      registry_user:
+        from_secret: REGISTRY_USER
+      registry_password:
+        from_secret: REGISTRY_PASSWORD
+
+  - name: docker-ppc64le
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
+    volumes:
+      - name: docker-sock
+        path: /var/run/docker.sock
+    settings:
+      base: registry.cn-qingdao.aliyuncs.com/wod/ui-base:v6.0-ppc64le
+      dockerfile: .beagle/dockerfile
+      repo: cloud/awecloud-hubble-ui
+      version: "v6.1.0"
+      channel: ppc64le
+      args: "TARGETOS=linux,TARGETARCH=ppc64le"
+      registry: hub.wodcloud.com
+      registry_user:
+        from_secret: REGISTRY_USER
+      registry_password:
+        from_secret: REGISTRY_PASSWORD
+
+  - name: docker-mips64le
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
+    volumes:
+      - name: docker-sock
+        path: /var/run/docker.sock
+    settings:
+      base: registry.cn-qingdao.aliyuncs.com/wod/ui-base:v6.0-mips64le
+      dockerfile: .beagle/dockerfile
+      repo: cloud/awecloud-hubble-ui
+      version: "v6.1.0"
+      channel: mips64le
+      args: "TARGETOS=linux,TARGETARCH=mips64le"
+      registry: hub.wodcloud.com
+      registry_user:
+        from_secret: REGISTRY_USER
+      registry_password:
+        from_secret: REGISTRY_PASSWORD
+
+  - name: docker-arch
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-manifest:1.0
+    settings:
+      platforms: linux/amd64,linux/arm64,linux/ppc64le,linux/mips64le
+      template: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1.0-ARCH
+      target: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1.0
+      insecure: true
+      username:
+        from_secret: REGISTRY_USER
+      password:
+        from_secret: REGISTRY_PASSWORD
+
+  # - name: deploy-cloud
+  #   image: registry.cn-qingdao.aliyuncs.com/wod/devops-kubernetes:1.0
+  #   settings:
+  #     namespace: skycloud
+  #     deployment: awecloud-hubble-ui
+  #     container: awecloud-hubble-ui
+  #     image: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1.0-amd64
+  #   environment:
+  #     KUBERNETES_SERVER:
+  #       from_secret: KUBERNETES_SERVER
+  #     KUBERNETES_TOKEN:
+  #       from_secret: KUBERNETES_TOKEN        
+---
+kind: pipeline
+name: main
+
+clone:
+  disable: true
+
+trigger:
+  branch:
+    - main
+
+steps:
+  - name: harbor-amd64
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
+    pull: always
+    environment:
+      REGISTRY_USER:
+        from_secret: REGISTRY_USER
+      REGISTRY_PASSWORD:
+        from_secret: REGISTRY_PASSWORD
+    settings:
+      source: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1.0-amd64
+      target: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1-amd64
+      registry: hub.wodcloud.com
+
+  - name: harbor-arm64
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
+    pull: always
+    environment:
+      REGISTRY_USER:
+        from_secret: REGISTRY_USER
+      REGISTRY_PASSWORD:
+        from_secret: REGISTRY_PASSWORD
+    settings:
+      source: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1.0-arm64
+      target: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1-arm64
+      registry: hub.wodcloud.com
+
+  - name: harbor-ppc64le
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
+    pull: always
+    environment: 
+      REGISTRY_USER:
+        from_secret: REGISTRY_USER
+      REGISTRY_PASSWORD:
+        from_secret: REGISTRY_PASSWORD
+    settings:
+      source: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1.0-ppc64le
+      target: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1-ppc64le
+      registry: hub.wodcloud.com
+
+  - name: harbor-mips64le
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
+    pull: always
+    environment:
+      REGISTRY_USER:
+        from_secret: REGISTRY_USER
+      REGISTRY_PASSWORD:
+        from_secret: REGISTRY_PASSWORD
+    settings:
+      source: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1.0-mips64le
+      target: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1-mips64le
+      registry: hub.wodcloud.com
+
+  - name: harbor-arch
+    image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-manifest:1.0
+    settings:
+      platforms:  linux/amd64,linux/arm64,linux/ppc64le,linux/mips64le
+      template: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1-ARCH
+      target: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1
+      insecure: true
+      username:
+        from_secret: REGISTRY_USER
+      password:
+        from_secret: REGISTRY_PASSWORD
+
+##--------------对于需要保密的信息隐藏，减少账户信息的泄密⬇-----------------##
+---
+kind: secret
+name: REGISTRY_USER
+get:
+  name: REGISTRY_USER
+  path: devops-secrets
+
+---
+kind: secret
+name: REGISTRY_PASSWORD
+get:
+  name: REGISTRY_PASSWORD
+  path: devops-secrets
+
+---
+kind: secret
+name: KUBERNETES_SERVER
+get:
+  name: KUBERNETES_SERVER
+  path: devops-secrets
+
+---
+kind: secret
+name: KUBERNETES_TOKEN
+get:
+  name: KUBERNETES_TOKEN
+  path: devops-secrets
+
+---
+kind: secret
+name: ACCESS_KEY_MINIO
+get:
+  name: ACCESS_KEY
+  path: devops-secrets
+
+---
+kind: secret
+name: SECRET_KEY_MINIO
+get:
+  name: SECRET_KEY
+  path: devops-secrets

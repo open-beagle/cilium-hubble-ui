@@ -1,0 +1,25 @@
+From 1ebe1974f53626dbaffc3a45c0fa934f1d127411 Mon Sep 17 00:00:00 2001
+From: shucheng <shucheng@bd-apaas.com>
+Date: Tue, 4 Jul 2023 14:35:23 +0800
+Subject: [PATCH] fix path
+
+---
+ src/index.html | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/index.html b/src/index.html
+index 6c7e87d..ed9ed28 100644
+--- a/src/index.html
++++ b/src/index.html
+@@ -3,7 +3,7 @@
+   <head>
+     <meta charset="utf-8" />
+     <title>Hubble UI</title>
+-    <base href="/" />
++    <base href="/awecloud/hubble/" />
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta
+       name="viewport"
+-- 
+2.39.2
+
