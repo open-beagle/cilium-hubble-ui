@@ -58,7 +58,7 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
         path: /var/run/docker.sock # 将下载依赖的目录挂载出来，防止重复下载
     settings: # 当前设置
       base: registry.cn-qingdao.aliyuncs.com/wod/ui-base:v6.0-amd64 # 基础镜像
-      dockerfile: .beagle/dockerfile
+      dockerfile: .beagle/dockerfile.ui
       repo: cloud/awecloud-hubble-ui # 生成镜像的 分组/名称
       version: "v6.1.0" # 版本号
       channel: amd64 # 后缀
@@ -76,7 +76,7 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
         path: /var/run/docker.sock
     settings:
       base: registry.cn-qingdao.aliyuncs.com/wod/ui-base:v6.0-arm64
-      dockerfile: .beagle/dockerfile
+      dockerfile: .beagle/dockerfile.ui
       repo: cloud/awecloud-hubble-ui
       version: "v6.1.0"
       channel: arm64
@@ -94,7 +94,7 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
         path: /var/run/docker.sock
     settings:
       base: registry.cn-qingdao.aliyuncs.com/wod/ui-base:v6.0-ppc64le
-      dockerfile: .beagle/dockerfile
+      dockerfile: .beagle/dockerfile.ui
       repo: cloud/awecloud-hubble-ui
       version: "v6.1.0"
       channel: ppc64le
@@ -112,7 +112,7 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
         path: /var/run/docker.sock
     settings:
       base: registry.cn-qingdao.aliyuncs.com/wod/ui-base:v6.0-mips64le
-      dockerfile: .beagle/dockerfile
+      dockerfile: .beagle/dockerfile.ui
       repo: cloud/awecloud-hubble-ui
       version: "v6.1.0"
       channel: mips64le
@@ -134,19 +134,6 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
         from_secret: REGISTRY_USER
       password:
         from_secret: REGISTRY_PASSWORD
-
-  # - name: deploy-cloud
-  #   image: registry.cn-qingdao.aliyuncs.com/wod/devops-kubernetes:1.0
-  #   settings:
-  #     namespace: skycloud
-  #     deployment: awecloud-hubble-ui
-  #     container: awecloud-hubble-ui
-  #     image: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1.0-amd64
-  #   environment:
-  #     KUBERNETES_SERVER:
-  #       from_secret: KUBERNETES_SERVER
-  #     KUBERNETES_TOKEN:
-  #       from_secret: KUBERNETES_TOKEN
 
   - name: golang
     image: registry.cn-qingdao.aliyuncs.com/wod/golang:1.20-loongnix
@@ -191,9 +178,9 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
       - name: docker
         path: /var/run/docker.sock
     settings:
-      dockerfile: .beagle/dockerfile.backend
+      dockerfile: .beagle/dockerfile.api
       base: registry.cn-qingdao.aliyuncs.com/wod/alpine:3-amd64
-      repo: cloud/awecloud-hubble-ui-backend
+      repo: cloud/awecloud-hubble-api
       version: v6.1.0
       channel: amd64
       args: 'TARGETOS=linux,TARGETARCH=amd64'
@@ -209,9 +196,9 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
       - name: docker
         path: /var/run/docker.sock
     settings:
-      dockerfile: .beagle/dockerfile.backend
+      dockerfile: .beagle/dockerfile.api
       base: registry.cn-qingdao.aliyuncs.com/wod/alpine:3-arm64
-      repo: cloud/awecloud-hubble-ui-backend
+      repo: cloud/awecloud-hubble-api
       version: v6.1.0
       channel: arm64
       args: 'TARGETOS=linux,TARGETARCH=arm64'
@@ -227,9 +214,9 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
       - name: docker
         path: /var/run/docker.sock
     settings:
-      dockerfile: .beagle/dockerfile.backend
+      dockerfile: .beagle/dockerfile.api
       base: registry.cn-qingdao.aliyuncs.com/wod/alpine:3-ppc64le
-      repo: cloud/awecloud-hubble-ui-backend
+      repo: cloud/awecloud-hubble-api
       version: v6.1.0
       channel: ppc64le
       args: 'TARGETOS=linux,TARGETARCH=ppc64le'
@@ -245,9 +232,9 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
       - name: docker
         path: /var/run/docker.sock
     settings:
-      dockerfile: .beagle/dockerfile.backend
+      dockerfile: .beagle/dockerfile.api
       base: registry.cn-qingdao.aliyuncs.com/wod/alpine:3-mips64le
-      repo: cloud/awecloud-hubble-ui-backend
+      repo: cloud/awecloud-hubble-api
       version: v6.1.0
       channel: mips64le
       args: 'TARGETOS=linux,TARGETARCH=mips64le'
@@ -261,14 +248,13 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-manifest:1.0
     settings:
       platforms: linux/amd64,linux/arm64,linux/ppc64le,linux/mips64le
-      template: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1.0-ARCH
-      target: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1.0
+      template: hub.wodcloud.com/cloud/awecloud-hubble-api:v6.1.0-ARCH
+      target: hub.wodcloud.com/cloud/awecloud-hubble-api:v6.1.0
       insecure: true
       username:
         from_secret: REGISTRY_USER
       password:
         from_secret: REGISTRY_PASSWORD
-
 ---
 kind: pipeline
 name: main-ui
@@ -343,7 +329,7 @@ steps:
 
 ---
 kind: pipeline
-name: main-ui-backend
+name: main-api
 
 clone:
   disable: true
@@ -357,8 +343,8 @@ steps:
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
     pull: always
     settings:
-      source: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1.0-amd64
-      target: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1-amd64
+      source: hub.wodcloud.com/cloud/awecloud-hubble-api:v6.1.0-amd64
+      target: hub.wodcloud.com/cloud/awecloud-hubble-api:v6.1-amd64
       registry: hub.wodcloud.com
       registry_user:
         from_secret: REGISTRY_USER
@@ -369,8 +355,8 @@ steps:
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
     pull: always
     settings:
-      source: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1.0-arm64
-      target: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1-arm64
+      source: hub.wodcloud.com/cloud/awecloud-hubble-api:v6.1.0-arm64
+      target: hub.wodcloud.com/cloud/awecloud-hubble-api:v6.1-arm64
       registry: hub.wodcloud.com
       registry_user:
         from_secret: REGISTRY_USER
@@ -381,8 +367,8 @@ steps:
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
     pull: always
     settings:
-      source: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1.0-ppc64le
-      target: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1-ppc64le
+      source: hub.wodcloud.com/cloud/awecloud-hubble-api:v6.1.0-ppc64le
+      target: hub.wodcloud.com/cloud/awecloud-hubble-api:v6.1-ppc64le
       registry: hub.wodcloud.com
       registry_user:
         from_secret: REGISTRY_USER
@@ -393,8 +379,8 @@ steps:
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
     pull: always
     settings:
-      source: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1.0-mips64le
-      target: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1-mips64le
+      source: hub.wodcloud.com/cloud/awecloud-hubble-api:v6.1.0-mips64le
+      target: hub.wodcloud.com/cloud/awecloud-hubble-api:v6.1-mips64le
       registry: hub.wodcloud.com
       registry_user:
         from_secret: REGISTRY_USER
@@ -405,8 +391,8 @@ steps:
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-manifest:1.0
     settings:
       platforms:  linux/amd64,linux/arm64,linux/ppc64le,linux/mips64le
-      template: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1-ARCH
-      target: hub.wodcloud.com/cloud/awecloud-hubble-ui-backend:v6.1
+      template: hub.wodcloud.com/cloud/awecloud-hubble-api:v6.1-ARCH
+      target: hub.wodcloud.com/cloud/awecloud-hubble-api:v6.1
       insecure: true
       username:
         from_secret: REGISTRY_USER
@@ -433,20 +419,6 @@ kind: secret
 name: REGISTRY_PASSWORD
 get:
   name: REGISTRY_PASSWORD
-  path: devops-secrets
-
----
-kind: secret
-name: KUBERNETES_SERVER
-get:
-  name: KUBERNETES_SERVER
-  path: devops-secrets
-
----
-kind: secret
-name: KUBERNETES_TOKEN
-get:
-  name: KUBERNETES_TOKEN
   path: devops-secrets
 
 ---
