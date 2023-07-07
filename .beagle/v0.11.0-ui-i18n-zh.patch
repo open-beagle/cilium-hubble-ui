@@ -1,6 +1,6 @@
-From f6ca9d6de19ac0a4984c63739dd42af03e691d85 Mon Sep 17 00:00:00 2001
+From 6caeafaf29c48206bd1a6e48b3fa1ca4ac1d5b12 Mon Sep 17 00:00:00 2001
 From: shucheng <shucheng@bd-apaas.com>
-Date: Fri, 7 Jul 2023 22:46:35 +0800
+Date: Fri, 7 Jul 2023 23:04:41 +0800
 Subject: [PATCH] v0.11.0 ui i18n zh
 
 ---
@@ -8,15 +8,18 @@ Subject: [PATCH] v0.11.0 ui i18n zh
  src/components/App/index.tsx                  |  4 +--
  src/components/DetailsPanel/index.tsx         |  4 +--
  src/components/FlowsTable/ColumnsSelector.tsx |  2 +-
- src/components/FlowsTable/Sidebar.tsx         | 32 +++++++++----------
- src/components/FlowsTable/general.ts          | 22 ++++++-------
+ src/components/FlowsTable/Sidebar.tsx         | 34 +++++++++----------
+ src/components/FlowsTable/general.ts          | 22 ++++++------
  src/components/TopBar/ConnectionIndicator.tsx | 12 +++----
  src/components/TopBar/FlowsFilterInput.tsx    |  6 ++--
  .../TopBar/NamespaceSelectorDropdown.tsx      |  6 ++--
  .../TopBar/VerdictFilterDropdown.tsx          |  6 ++--
  .../TopBar/VisualFiltersDropdown.tsx          | 12 +++----
+ src/domain/flows/index.ts                     |  6 ++--
+ src/domain/helpers/protocol.ts                |  4 +--
+ src/domain/helpers/verdict.ts                 |  8 ++---
  src/utils/time.ts                             |  2 ++
- 12 files changed, 57 insertions(+), 57 deletions(-)
+ 15 files changed, 67 insertions(+), 67 deletions(-)
 
 diff --git a/src/components/App/WelcomeScreen.tsx b/src/components/App/WelcomeScreen.tsx
 index 30b3f650..01bc8abb 100644
@@ -79,10 +82,10 @@ index cbd11fc9..6ff328d6 100644
          />
        </Popover>
 diff --git a/src/components/FlowsTable/Sidebar.tsx b/src/components/FlowsTable/Sidebar.tsx
-index 15968c53..b266d541 100644
+index 15968c53..abd86f29 100644
 --- a/src/components/FlowsTable/Sidebar.tsx
 +++ b/src/components/FlowsTable/Sidebar.tsx
-@@ -282,11 +282,11 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
+@@ -282,15 +282,15 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
    return (
      <div className={css.sidebar}>
        <header className={css.header}>
@@ -96,6 +99,11 @@ index 15968c53..b266d541 100644
          <div className={css.body}>{flow.isoTimestamp}</div>
        </section>
        <section className={css.block}>
+-        <span className={css.title}>Verdict</span>
++        <span className={css.title}>策略</span>
+         <div className={css.body}>
+           <VerdictEntry
+             verdict={flow.verdict}
 @@ -301,23 +301,23 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
        </section>
        {flow.verdict === Verdict.Dropped && (
@@ -210,12 +218,12 @@ index 15968c53..b266d541 100644
          <section className={css.block}>
            <span className={css.title}>
 -            Destination {!isICMPProtocol && 'port • '}protocol
-+            Destination {!isICMPProtocol && 'port • '}protocol(网络协议)
++            目标 {!isICMPProtocol && '端口 • '}网络协议
            </span>
            <div className={css.body}>
              {flow.destinationPort && `${flow.destinationPort} • `}
 diff --git a/src/components/FlowsTable/general.ts b/src/components/FlowsTable/general.ts
-index 68feeaae..7e2e70a8 100644
+index 68feeaae..4ca6e73a 100644
 --- a/src/components/FlowsTable/general.ts
 +++ b/src/components/FlowsTable/general.ts
 @@ -3,17 +3,17 @@ export interface CommonProps {
@@ -241,7 +249,7 @@ index 68feeaae..7e2e70a8 100644
 +  DstService = '目标 Service',
 +  DstPort = '目标 Port',
 +  L7Info = 'L7 信息',
-+  Verdict = '防火墙',
++  Verdict = '策略',
 +  TcpFlags = 'TCP 标记',
 +  Timestamp = '时间戳',
  }
@@ -345,7 +353,7 @@ index fcd06614..aa14194d 100644
          <Button
            rightIcon="caret-down"
 diff --git a/src/components/TopBar/VerdictFilterDropdown.tsx b/src/components/TopBar/VerdictFilterDropdown.tsx
-index ee82fba2..0266208d 100644
+index ee82fba2..a38ad137 100644
 --- a/src/components/TopBar/VerdictFilterDropdown.tsx
 +++ b/src/components/TopBar/VerdictFilterDropdown.tsx
 @@ -24,15 +24,15 @@ interface FilterOption {
@@ -358,12 +366,12 @@ index ee82fba2..0266208d 100644
    {
      verdict: Verdict.Forwarded,
 -    title: 'Forwarded',
-+    title: '已转发',
++    title: '转发',
    },
    {
      verdict: Verdict.Dropped,
 -    title: 'Dropped',
-+    title: '已丢弃',
++    title: '丢弃',
    },
  ];
  
@@ -425,6 +433,60 @@ index 6ffdf984..a383cdb9 100644
          onClick={popover.toggle}
          className={classnames({
            [css.visualFilterEnabled]: enabled,
+diff --git a/src/domain/flows/index.ts b/src/domain/flows/index.ts
+index 3e5e4fdd..b500fb3c 100644
+--- a/src/domain/flows/index.ts
++++ b/src/domain/flows/index.ts
+@@ -416,11 +416,11 @@ export class Flow {
+   public get trafficDirectionLabel() {
+     switch (this.trafficDirection) {
+       case TrafficDirection.Unknown:
+-        return 'unknown';
++        return '未知';
+       case TrafficDirection.Ingress:
+-        return 'ingress';
++        return '入站';
+       case TrafficDirection.Egress:
+-        return 'egress';
++        return '出站';
+     }
+   }
+ 
+diff --git a/src/domain/helpers/protocol.ts b/src/domain/helpers/protocol.ts
+index be51ac7e..d8abf265 100644
+--- a/src/domain/helpers/protocol.ts
++++ b/src/domain/helpers/protocol.ts
+@@ -7,7 +7,7 @@ export const toString = (p: IPProtocol): string => {
+       [IPProtocol.UDP]: 'UDP',
+       [IPProtocol.ICMPv4]: 'ICMPv4',
+       [IPProtocol.ICMPv6]: 'ICMPv6',
+-      [IPProtocol.Unknown]: 'Unknown protocol',
+-    }[p] || 'Unknown protocol'
++      [IPProtocol.Unknown]: '未知协议',
++    }[p] || '未知协议'
+   );
+ };
+diff --git a/src/domain/helpers/verdict.ts b/src/domain/helpers/verdict.ts
+index 91318817..eb7d5635 100644
+--- a/src/domain/helpers/verdict.ts
++++ b/src/domain/helpers/verdict.ts
+@@ -40,12 +40,12 @@ export const verdictFromStr = (v: string): Verdict => {
+ export const toString = (verdict: Verdict): string => {
+   switch (verdict) {
+     case Verdict.Forwarded:
+-      return 'forwarded';
++      return '转发';
+     case Verdict.Dropped:
+-      return 'dropped';
++      return '丢弃';
+     case Verdict.Unknown:
+-      return 'unknown';
++      return '未知';
+   }
+ 
+-  return 'unhandled';
++  return '未处理';
+ };
 diff --git a/src/utils/time.ts b/src/utils/time.ts
 index ccd90e4e..b4cbe90c 100644
 --- a/src/utils/time.ts
