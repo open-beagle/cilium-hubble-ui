@@ -1,19 +1,19 @@
-From e3284b3757dc13b66ed883fd4fe6a4ed10093a41 Mon Sep 17 00:00:00 2001
+From 3796ee8db890a23279a0cc08216c31897d62d174 Mon Sep 17 00:00:00 2001
 From: shucheng <shucheng@bd-apaas.com>
-Date: Fri, 7 Jul 2023 09:50:10 +0800
-Subject: [PATCH] ui 18n zh
+Date: Fri, 7 Jul 2023 09:55:15 +0800
+Subject: [PATCH] ui i18n zh
 
 ---
  src/components/App/WelcomeScreen.tsx          |  6 ++--
  src/components/FlowsTable/ColumnsSelector.tsx |  2 +-
- src/components/FlowsTable/Sidebar.tsx         | 30 +++++++++----------
- src/components/FlowsTable/general.ts          | 22 +++++++-------
+ src/components/FlowsTable/Sidebar.tsx         | 32 +++++++++----------
+ src/components/FlowsTable/general.ts          | 22 ++++++-------
  src/components/TopBar/ConnectionIndicator.tsx |  6 ++--
  src/components/TopBar/FlowsFilterInput.tsx    |  6 ++--
  .../TopBar/NamespaceSelectorDropdown.tsx      |  6 ++--
  .../TopBar/VerdictFilterDropdown.tsx          |  6 ++--
- .../TopBar/VisualFiltersDropdown.tsx          | 12 ++++----
- 9 files changed, 47 insertions(+), 49 deletions(-)
+ .../TopBar/VisualFiltersDropdown.tsx          | 12 +++----
+ 9 files changed, 48 insertions(+), 50 deletions(-)
 
 diff --git a/src/components/App/WelcomeScreen.tsx b/src/components/App/WelcomeScreen.tsx
 index 30b3f650..01bc8abb 100644
@@ -46,10 +46,15 @@ index cbd11fc9..6ff328d6 100644
          />
        </Popover>
 diff --git a/src/components/FlowsTable/Sidebar.tsx b/src/components/FlowsTable/Sidebar.tsx
-index 15968c53..ab4dfa65 100644
+index 15968c53..b266d541 100644
 --- a/src/components/FlowsTable/Sidebar.tsx
 +++ b/src/components/FlowsTable/Sidebar.tsx
-@@ -286,7 +286,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
+@@ -282,11 +282,11 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
+   return (
+     <div className={css.sidebar}>
+       <header className={css.header}>
+-        <span>Flow Details</span>
++        <span>数据流详情</span>
          <Icon className={css.close} icon="cross" onClick={props.onClose} />
        </header>
        <section className={css.block}>
