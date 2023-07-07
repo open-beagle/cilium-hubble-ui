@@ -36,6 +36,8 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
     settings:
       proxy:
         from_secret: SOCKS5_PROXY
+    depends_on:
+      - s3-cache
 
   - name: patch-js
     image: registry.cn-qingdao.aliyuncs.com/wod/git:2
@@ -43,12 +45,16 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
       - git apply .beagle/v0.11.0-ui-install-grpc.patch
       - git apply .beagle/v0.11.0-ui-fix-path.patch
       - git apply .beagle/v0.11.0-ui-i18n-zh.patch
+    depends_on:
+      - fetch
 
-  - name: build # 项目打包
+  - name: node-js # 项目打包
     image: registry.cn-qingdao.aliyuncs.com/wod/node:18-alpine
     commands:
       - yarn
       - yarn build
+    depends_on:
+      - patch-js
 
   - name: docker-amd64
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
@@ -68,6 +74,8 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
         from_secret: REGISTRY_USER
       registry_password: # 密码
         from_secret: REGISTRY_PASSWORD
+    depends_on:
+      - node-js
 
   - name: docker-arm64
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
@@ -86,6 +94,8 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
         from_secret: REGISTRY_USER
       registry_password:
         from_secret: REGISTRY_PASSWORD
+    depends_on:
+      - node-js
 
   - name: docker-ppc64le
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
@@ -104,6 +114,8 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
         from_secret: REGISTRY_USER
       registry_password:
         from_secret: REGISTRY_PASSWORD
+    depends_on:
+      - node-js
 
   - name: docker-mips64le
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
@@ -122,6 +134,8 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
         from_secret: REGISTRY_USER
       registry_password:
         from_secret: REGISTRY_PASSWORD
+    depends_on:
+      - node-js
 
   - name: docker-arch
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-manifest:1.0
@@ -134,16 +148,25 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
         from_secret: REGISTRY_USER
       password:
         from_secret: REGISTRY_PASSWORD
+    depends_on:
+      - docker-amd64
+      - docker-arm64
+      - docker-ppc64le
+      - docker-mips64le
 
   - name: patch-golang
     image: registry.cn-qingdao.aliyuncs.com/wod/git:2
     commands:
       - git apply .beagle/v0.11.0-backend-fix-path.patch
+    depends_on:
+      - fetch
 
   - name: golang
     image: registry.cn-qingdao.aliyuncs.com/wod/golang:1.20-loongnix
     commands:
       - bash ./.beagle/build.sh
+    depends_on:
+      - patch-golang
 
   - name: gops-amd64
     image: registry.cn-qingdao.aliyuncs.com/wod/gops:v0.3.27-amd64
@@ -152,6 +175,8 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
     commands:
       - mkdir -p .tmp/linux-$TARGET_ARCH
       - cp /usr/local/bin/gops .tmp/linux-$TARGET_ARCH/gops
+    depends_on:
+      - golang
 
   - name: gops-arm64
     image: registry.cn-qingdao.aliyuncs.com/wod/gops:v0.3.27-arm64
@@ -160,6 +185,8 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
     commands:
       - mkdir -p .tmp/linux-$TARGET_ARCH
       - cp /usr/local/bin/gops .tmp/linux-$TARGET_ARCH/gops
+    depends_on:
+      - golang
 
   - name: gops-ppc64le
     image: registry.cn-qingdao.aliyuncs.com/wod/gops:v0.3.27-ppc64le
@@ -168,6 +195,8 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
     commands:
       - mkdir -p .tmp/linux-$TARGET_ARCH
       - cp /usr/local/bin/gops .tmp/linux-$TARGET_ARCH/gops
+    depends_on:
+      - golang
 
   - name: gops-mips64le
     image: registry.cn-qingdao.aliyuncs.com/wod/gops:v0.3.27-mips64le
@@ -176,6 +205,8 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
     commands:
       - mkdir -p .tmp/linux-$TARGET_ARCH
       - cp /usr/local/bin/gops .tmp/linux-$TARGET_ARCH/gops
+    depends_on:
+      - golang
 
   - name: backend-docker-amd64
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
@@ -194,6 +225,8 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
         from_secret: REGISTRY_USER
       registry_password:
         from_secret: REGISTRY_PASSWORD
+    depends_on:
+      - gops-amd64
 
   - name: backend-docker-arm64
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
@@ -212,6 +245,8 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
         from_secret: REGISTRY_USER
       registry_password:
         from_secret: REGISTRY_PASSWORD
+    depends_on:
+      - gops-arm64
 
   - name: backend-docker-ppc64le
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
@@ -230,6 +265,8 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
         from_secret: REGISTRY_USER
       registry_password:
         from_secret: REGISTRY_PASSWORD
+    depends_on:
+      - gops-ppc64le
 
   - name: backend-docker-mips64le
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
@@ -248,6 +285,8 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
         from_secret: REGISTRY_USER
       registry_password:
         from_secret: REGISTRY_PASSWORD
+    depends_on:
+      - gops-mips64le
 
   - name: backend-docker-arch
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-manifest:1.0
@@ -260,6 +299,12 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
         from_secret: REGISTRY_USER
       password:
         from_secret: REGISTRY_PASSWORD
+    depends_on:
+      - backend-docker-amd64
+      - backend-docker-arm64
+      - backend-docker-ppc64le
+      - backend-docker-mips64le
+
 ---
 kind: pipeline
 name: main-ui
