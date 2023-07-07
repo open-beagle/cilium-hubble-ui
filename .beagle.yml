@@ -37,12 +37,12 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
       proxy:
         from_secret: SOCKS5_PROXY
 
-  - name: patch
+  - name: patch-js
     image: registry.cn-qingdao.aliyuncs.com/wod/git:2
     commands:
-      - git apply .beagle/v0.11.0-install-grpc.patch    
-      - git apply .beagle/v0.11.0-fix-path.patch
-      - git apply .beagle/v0.11.0-backend-fix-path.patch
+      - git apply .beagle/v0.11.0-ui-install-grpc.patch
+      - git apply .beagle/v0.11.0-ui-fix-path.patch
+      - git apply .beagle/v0.11.0-ui-i18n-zh.patch
 
   - name: build # 项目打包
     image: registry.cn-qingdao.aliyuncs.com/wod/node:18-alpine
@@ -52,7 +52,7 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
 
   - name: docker-amd64
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
-    # 将宿主机的 docker和配置挂载到运行的 docker 容器中，那么在容器中运行 docker 命令时，等同于在宿主机中运行该docker命令 
+    # 将宿主机的 docker和配置挂载到运行的 docker 容器中，那么在容器中运行 docker 命令时，等同于在宿主机中运行该docker命令
     volumes:
       - name: docker
         path: /var/run/docker.sock # 将下载依赖的目录挂载出来，防止重复下载
@@ -60,15 +60,15 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
       base: registry.cn-qingdao.aliyuncs.com/wod/ui-base:v6.0-amd64 # 基础镜像
       dockerfile: .beagle/dockerfile.ui
       repo: cloud/awecloud-hubble-ui # 生成镜像的 分组/名称
-      version: "v6.1.0" # 版本号
+      version: 'v6.1.0' # 版本号
       channel: amd64 # 后缀
-      args: "TARGETOS=linux,TARGETARCH=amd64" # 不同架构的构建参数
+      args: 'TARGETOS=linux,TARGETARCH=amd64' # 不同架构的构建参数
       registry: hub.wodcloud.com # 私有仓库地址
       registry_user: # 用户
         from_secret: REGISTRY_USER
       registry_password: # 密码
         from_secret: REGISTRY_PASSWORD
- 
+
   - name: docker-arm64
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
     volumes:
@@ -78,9 +78,9 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
       base: registry.cn-qingdao.aliyuncs.com/wod/ui-base:v6.0-arm64
       dockerfile: .beagle/dockerfile.ui
       repo: cloud/awecloud-hubble-ui
-      version: "v6.1.0"
+      version: 'v6.1.0'
       channel: arm64
-      args: "TARGETOS=linux,TARGETARCH=arm64"
+      args: 'TARGETOS=linux,TARGETARCH=arm64'
       registry: hub.wodcloud.com
       registry_user:
         from_secret: REGISTRY_USER
@@ -96,9 +96,9 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
       base: registry.cn-qingdao.aliyuncs.com/wod/ui-base:v6.0-ppc64le
       dockerfile: .beagle/dockerfile.ui
       repo: cloud/awecloud-hubble-ui
-      version: "v6.1.0"
+      version: 'v6.1.0'
       channel: ppc64le
-      args: "TARGETOS=linux,TARGETARCH=ppc64le"
+      args: 'TARGETOS=linux,TARGETARCH=ppc64le'
       registry: hub.wodcloud.com
       registry_user:
         from_secret: REGISTRY_USER
@@ -114,9 +114,9 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
       base: registry.cn-qingdao.aliyuncs.com/wod/ui-base:v6.0-mips64le
       dockerfile: .beagle/dockerfile.ui
       repo: cloud/awecloud-hubble-ui
-      version: "v6.1.0"
+      version: 'v6.1.0'
       channel: mips64le
-      args: "TARGETOS=linux,TARGETARCH=mips64le"
+      args: 'TARGETOS=linux,TARGETARCH=mips64le'
       registry: hub.wodcloud.com
       registry_user:
         from_secret: REGISTRY_USER
@@ -134,6 +134,11 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
         from_secret: REGISTRY_USER
       password:
         from_secret: REGISTRY_PASSWORD
+
+  - name: patch-golang
+    image: registry.cn-qingdao.aliyuncs.com/wod/git:2
+    commands:
+      - git apply .beagle/v0.11.0-backend-fix-path.patch
 
   - name: golang
     image: registry.cn-qingdao.aliyuncs.com/wod/golang:1.20-loongnix
@@ -170,7 +175,7 @@ steps: # 定义流水线执行步骤，这些步骤将顺序执行
       TARGET_ARCH: mips64le
     commands:
       - mkdir -p .tmp/linux-$TARGET_ARCH
-      - cp /usr/local/bin/gops .tmp/linux-$TARGET_ARCH/gops                 
+      - cp /usr/local/bin/gops .tmp/linux-$TARGET_ARCH/gops
 
   - name: backend-docker-amd64
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker:1.0
@@ -277,7 +282,7 @@ steps:
       registry_user:
         from_secret: REGISTRY_USER
       registry_password:
-        from_secret: REGISTRY_PASSWORD 
+        from_secret: REGISTRY_PASSWORD
 
   - name: harbor-arm64
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
@@ -289,7 +294,7 @@ steps:
       registry_user:
         from_secret: REGISTRY_USER
       registry_password:
-        from_secret: REGISTRY_PASSWORD 
+        from_secret: REGISTRY_PASSWORD
 
   - name: harbor-ppc64le
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
@@ -301,7 +306,7 @@ steps:
       registry_user:
         from_secret: REGISTRY_USER
       registry_password:
-        from_secret: REGISTRY_PASSWORD 
+        from_secret: REGISTRY_PASSWORD
 
   - name: harbor-mips64le
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
@@ -313,12 +318,12 @@ steps:
       registry_user:
         from_secret: REGISTRY_USER
       registry_password:
-        from_secret: REGISTRY_PASSWORD 
+        from_secret: REGISTRY_PASSWORD
 
   - name: harbor-arch
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-manifest:1.0
     settings:
-      platforms:  linux/amd64,linux/arm64,linux/ppc64le,linux/mips64le
+      platforms: linux/amd64,linux/arm64,linux/ppc64le,linux/mips64le
       template: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1-ARCH
       target: hub.wodcloud.com/cloud/awecloud-hubble-ui:v6.1
       insecure: true
@@ -349,7 +354,7 @@ steps:
       registry_user:
         from_secret: REGISTRY_USER
       registry_password:
-        from_secret: REGISTRY_PASSWORD 
+        from_secret: REGISTRY_PASSWORD
 
   - name: harbor-arm64
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
@@ -361,7 +366,7 @@ steps:
       registry_user:
         from_secret: REGISTRY_USER
       registry_password:
-        from_secret: REGISTRY_PASSWORD 
+        from_secret: REGISTRY_PASSWORD
 
   - name: harbor-ppc64le
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
@@ -373,7 +378,7 @@ steps:
       registry_user:
         from_secret: REGISTRY_USER
       registry_password:
-        from_secret: REGISTRY_PASSWORD 
+        from_secret: REGISTRY_PASSWORD
 
   - name: harbor-mips64le
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-tag:1.0
@@ -385,12 +390,12 @@ steps:
       registry_user:
         from_secret: REGISTRY_USER
       registry_password:
-        from_secret: REGISTRY_PASSWORD      
+        from_secret: REGISTRY_PASSWORD
 
   - name: harbor-arch
     image: registry.cn-qingdao.aliyuncs.com/wod/devops-docker-manifest:1.0
     settings:
-      platforms:  linux/amd64,linux/arm64,linux/ppc64le,linux/mips64le
+      platforms: linux/amd64,linux/arm64,linux/ppc64le,linux/mips64le
       template: hub.wodcloud.com/cloud/awecloud-hubble-api:v6.1-ARCH
       target: hub.wodcloud.com/cloud/awecloud-hubble-api:v6.1
       insecure: true
