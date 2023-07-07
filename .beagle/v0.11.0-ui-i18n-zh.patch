@@ -1,21 +1,22 @@
-From 6ab0a64b72aeb9699af507955ce043cfd33e04fb Mon Sep 17 00:00:00 2001
+From e3284b3757dc13b66ed883fd4fe6a4ed10093a41 Mon Sep 17 00:00:00 2001
 From: shucheng <shucheng@bd-apaas.com>
-Date: Fri, 7 Jul 2023 09:27:31 +0800
-Subject: [PATCH] ui i18n zh
+Date: Fri, 7 Jul 2023 09:50:10 +0800
+Subject: [PATCH] ui 18n zh
 
 ---
- src/components/App/WelcomeScreen.tsx          |  6 ++---
+ src/components/App/WelcomeScreen.tsx          |  6 ++--
  src/components/FlowsTable/ColumnsSelector.tsx |  2 +-
- src/components/FlowsTable/general.ts          | 22 +++++++++----------
- src/components/TopBar/ConnectionIndicator.tsx |  6 ++---
- src/components/TopBar/FlowsFilterInput.tsx    |  6 ++---
- .../TopBar/NamespaceSelectorDropdown.tsx      |  4 ++--
- .../TopBar/VerdictFilterDropdown.tsx          |  6 ++---
- .../TopBar/VisualFiltersDropdown.tsx          | 12 +++++-----
- 8 files changed, 31 insertions(+), 33 deletions(-)
+ src/components/FlowsTable/Sidebar.tsx         | 30 +++++++++----------
+ src/components/FlowsTable/general.ts          | 22 +++++++-------
+ src/components/TopBar/ConnectionIndicator.tsx |  6 ++--
+ src/components/TopBar/FlowsFilterInput.tsx    |  6 ++--
+ .../TopBar/NamespaceSelectorDropdown.tsx      |  6 ++--
+ .../TopBar/VerdictFilterDropdown.tsx          |  6 ++--
+ .../TopBar/VisualFiltersDropdown.tsx          | 12 ++++----
+ 9 files changed, 47 insertions(+), 49 deletions(-)
 
 diff --git a/src/components/App/WelcomeScreen.tsx b/src/components/App/WelcomeScreen.tsx
-index 30b3f650..916a37f4 100644
+index 30b3f650..01bc8abb 100644
 --- a/src/components/App/WelcomeScreen.tsx
 +++ b/src/components/App/WelcomeScreen.tsx
 @@ -18,10 +18,8 @@ export const WelcomeScreen = observer(function WelcomeScreen(props: Props) {
@@ -26,7 +27,7 @@ index 30b3f650..916a37f4 100644
 -        <p className={css.description}>
 -          To begin select one of the namespaces:
 -        </p>
-+        <h1 className={css.title}>监控网络流量!</h1>
++        <h1 className={css.title}>网络流量</h1>
 +        <p className={css.description}>从选择一个Namespace开始:</p>
          {someNamespacesLoaded ? (
            <ul className={css.namespacesList}>
@@ -44,6 +45,137 @@ index cbd11fc9..6ff328d6 100644
            onClick={popover.toggle}
          />
        </Popover>
+diff --git a/src/components/FlowsTable/Sidebar.tsx b/src/components/FlowsTable/Sidebar.tsx
+index 15968c53..ab4dfa65 100644
+--- a/src/components/FlowsTable/Sidebar.tsx
++++ b/src/components/FlowsTable/Sidebar.tsx
+@@ -286,7 +286,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
+         <Icon className={css.close} icon="cross" onClick={props.onClose} />
+       </header>
+       <section className={css.block}>
+-        <span className={css.title}>Timestamp</span>
++        <span className={css.title}>时间戳</span>
+         <div className={css.body}>{flow.isoTimestamp}</div>
+       </section>
+       <section className={css.block}>
+@@ -301,23 +301,23 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
+       </section>
+       {flow.verdict === Verdict.Dropped && (
+         <section className={css.block}>
+-          <span className={css.title}>Drop reason</span>
++          <span className={css.title}>丢弃原因</span>
+           <div className={css.body}>{flow.dropReason}</div>
+         </section>
+       )}
+       <section className={css.block}>
+-        <span className={css.title}>Traffic direction</span>
++        <span className={css.title}>流量方向</span>
+         <div className={css.body}>{flow.trafficDirectionLabel}</div>
+       </section>
+       {flow.ciliumEventSubTypeLabel && (
+         <section className={css.block}>
+-          <span className={css.title}>Cilium event type</span>
++          <span className={css.title}>Cilium 事件类型</span>
+           <div className={css.body}>{flow.ciliumEventSubTypeLabel}</div>
+         </section>
+       )}
+       {flow.enabledTcpFlags.length > 0 && (
+         <section className={css.block}>
+-          <span className={css.title}>TCP flags</span>
++          <span className={css.title}>TCP 标记</span>
+           <div className={css.body}>
+             <TCPFlagsEntry
+               flags={flow.enabledTcpFlags}
+@@ -331,7 +331,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
+       <hr />
+       {flow.hasSource && flow.sourcePodName && (
+         <section className={css.block}>
+-          <span className={css.title}>Source pod</span>
++          <span className={css.title}>源 pod</span>
+           <div className={css.body}>
+             <PodEntry
+               podSelector={flow.sourcePodSelector}
+@@ -343,7 +343,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
+       )}
+       {flow.hasSource && typeof flow.sourceIdentity === 'number' && (
+         <section className={css.block}>
+-          <span className={css.title}>Source identity</span>
++          <span className={css.title}>源 identity</span>
+           <div className={css.body}>
+             <IdentityEntry
+               identity={flow.sourceIdentity}
+@@ -355,7 +355,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
+       )}
+       {flow.hasSource && flow.sourceLabels.length > 0 && (
+         <section className={css.block}>
+-          <span className={css.title}>Source labels</span>
++          <span className={css.title}>源 labels</span>
+           <div className={css.body}>
+             <LabelsEntry
+               labels={flow.sourceLabels}
+@@ -367,7 +367,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
+       )}
+       {flow.hasSource && flow.sourceIp && (
+         <section className={css.block}>
+-          <span className={css.title}>Source IP</span>
++          <span className={css.title}>源 IP</span>
+           <div className={css.body}>
+             <IPEntry
+               ip={flow.sourceIp}
+@@ -380,7 +380,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
+       <hr />
+       {flow.hasDestination && flow.destinationPodName && (
+         <section className={css.block}>
+-          <span className={css.title}>Destination pod</span>
++          <span className={css.title}>目标 pod</span>
+           <div className={css.body}>
+             <PodEntry
+               podSelector={flow.destinationPodSelector}
+@@ -392,7 +392,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
+       )}
+       {flow.hasDestination && typeof flow.destinationIdentity === 'number' && (
+         <section className={css.block}>
+-          <span className={css.title}>Destination identity</span>
++          <span className={css.title}>目标 identity</span>
+           <div className={css.body}>
+             <IdentityEntry
+               identity={flow.destinationIdentity}
+@@ -404,7 +404,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
+       )}
+       {flow.hasDestination && flow.destinationLabels.length > 0 && (
+         <section className={css.block}>
+-          <span className={css.title}>Destination labels</span>
++          <span className={css.title}>目标 labels</span>
+           <div className={css.body}>
+             <LabelsEntry
+               labels={flow.destinationLabels}
+@@ -416,7 +416,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
+       )}
+       {flow.hasDestination && flow.destinationIp && (
+         <section className={css.block}>
+-          <span className={css.title}>Destination IP</span>
++          <span className={css.title}>目标 IP</span>
+           <div className={css.body}>
+             <IPEntry
+               ip={flow.destinationIp}
+@@ -428,7 +428,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
+       )}
+       {flow.hasDestination && flow.destinationDns && (
+         <section className={css.block}>
+-          <span className={css.title}>Destination DNS</span>
++          <span className={css.title}>目标 DNS</span>
+           <div className={css.body}>
+             <DnsBodyItem
+               dns={flow.destinationDns}
+@@ -441,7 +441,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
+       {flow.hasDestination && flow.protocol && (
+         <section className={css.block}>
+           <span className={css.title}>
+-            Destination {!isICMPProtocol && 'port • '}protocol
++            Destination {!isICMPProtocol && 'port • '}protocol(网络协议)
+           </span>
+           <div className={css.body}>
+             {flow.destinationPort && `${flow.destinationPort} • `}
 diff --git a/src/components/FlowsTable/general.ts b/src/components/FlowsTable/general.ts
 index 68feeaae..5e013015 100644
 --- a/src/components/FlowsTable/general.ts
@@ -128,9 +260,18 @@ index 297fd787..842eee79 100644
      />
    );
 diff --git a/src/components/TopBar/NamespaceSelectorDropdown.tsx b/src/components/TopBar/NamespaceSelectorDropdown.tsx
-index fcd06614..1730ea71 100644
+index fcd06614..aa14194d 100644
 --- a/src/components/TopBar/NamespaceSelectorDropdown.tsx
 +++ b/src/components/TopBar/NamespaceSelectorDropdown.tsx
+@@ -59,7 +59,7 @@ export const NamespaceSelectorDropdown = memo<Props>(
+         ? currentNamespace
+         : currentNamespace
+         ? `Waiting ${currentNamespace} namespace…`
+-        : 'Choose namespace';
++        : '选择 Namespace';
+ 
+     return (
+       <NamespaceSelect
 @@ -69,10 +69,10 @@ export const NamespaceSelectorDropdown = memo<Props>(
          itemPredicate={filterItem}
          itemRenderer={renderItem}

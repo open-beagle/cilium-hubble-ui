@@ -41,7 +41,8 @@ docker run -it --rm \
 -w /go/src/github.com/cilium/hubble-ui \
 registry.cn-qingdao.aliyuncs.com/wod/git:2 \
 git apply .beagle/v0.11.0-ui-fix-path.patch && \
-git apply .beagle/v0.11.0-ui-install-grpc.patch
+git apply .beagle/v0.11.0-ui-install-grpc.patch && \
+git apply .beagle/v0.11.0-ui-i18n-zh.patch
 
 # build
 docker run --rm -it \
